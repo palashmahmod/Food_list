@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>মেহেরিনের খাবার তালিকা</title>
+    <style>
+        :root {
+            --primary: #4A90E2;
+            --success: #28a745;
+            --danger: #dc3545;
+            --border: #bbb;
+        }
+        body { font-family: sans-serif; margin: 0; background: #f4f7f6; color: #333; }
+        .container { max-width: 100%; padding: 10px; box-sizing: border-box; }
+        
+        .top-photo { 
+            width: 100px; height: 100px; 
+            object-fit: cover; border-radius: 10px; 
+            display: block; margin: 10px auto; 
+            border: 2px solid var(--primary);
+        }
+        #login-screen { text-align: center; padding-top: 50px; display: block; }
+        .login-box { background: white; padding: 20px; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); margin: 0 10px; }
+        input[type="password"] { padding: 12px; width: 80%; border: 1px solid #ccc; border-radius: 8px; margin-bottom: 15px; text-align: center; }
+        
+        #main-screen, #create-screen { display: none; }
+        header h3 { text-align: center; color: var(--primary); margin: 10px 0; font-size: 16px; }
+        
+        .diet-table { 
+            width: 100%; border-collapse: collapse; background: white; 
+            margin-bottom: 15px; font-size: 10px; table-layout: fixed; 
+        }
+        .diet-table th, .diet-table td { 
+            border: 0.5px solid var(--border); padding: 4px; 
+            text-align: center; word-wrap: break-word; 
+        }
+        .date-header { background: #eee; font-weight: bold; font-size: 11px; }
+        .row-title { font-weight: bold; background: #f9f9f9; width: 45px; }
+        .col-title { background: #e3efff; font-weight: bold; }
+        .diet-table textarea { 
+            width: 100%; height: 80px; padding: 2px; 
+            box-sizing: border-box; border: none; 
+            font-size: 10px; resize: none; background: transparent;
+            text-align: center;
+        }
+        .diet-table textarea:focus { outline: 1px solid var(--primary); background: #fff; }
+        .btn { padding: 12px; border: none; border-radius: 8px; cursor: pointer; font-weight: bold; }
+        .btn-main { background: var(--primary); color: white; width: 100%; font-size: 15px; margin-top: 10px; }
+        .btn-save { background: var(--success); color: white; width: 100%; font-size: 15px; margin-bottom: 10px; }
+        .btn-del-item { background: var(--danger); color: white; font-size: 9px; padding: 3px 6px; border-radius: 3px; }
+        .btn-edit-item { background: orange; color: white; font-size: 9px; padding: 3px 6px; border-radius: 3px; margin-right: 5px; }
+        input[type="date"] { width: 100%; padding: 8px; font-size: 14px; margin-bottom: 10px; border: 1px solid #ccc; border-radius: 5px; box-sizing: border-box;}
+        label { font-size: 12px; font-weight: bold; display: block; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div id="login-screen">
+        <img src="photo1.jpg" alt="Photo" class="top-photo">
+        <div class="login-box">
+            <h2>স্বাগতম</h2>
+            <input type="password" id="passInput" placeholder="পাসওয়ার্ড দিন">
+            <button class="btn btn-main" onclick="checkLogin()">প্রবেশ করুন</button>
+        </div>
+    </div>
+    <div id="main-screen">
+        <img src="photo2.jpg" alt="Photo" class="top-photo">
+        <header><h3>মেহেরিনের খাবার তালিকা</h3></header>
+        <div id="table-container"></div>
+        <button class="btn btn-main" onclick="showCreatePage()">নতুন তালিকা তৈরি করুন +</button>
+    </div>
+    <div id="create-screen">
+        <header><h3 id="form-title">নতুন তালিকা তৈরি</h3></header>
+        <label>তারিখ ও বার নির্বাচন করুন:</label>
+        <input type="date" id="targetDate">
+        <table class="diet-table">
+            <tr class="col-title">
+                <td style="width: 45px;">সময়</td>
+                <td>সকাল</td>
+                <td>দুপুর</td>
+                <td>অন্যান্য</td>
+                <td>রাত</td>
+            </tr>
+            <tr>
+                <td class="row-title">খাবার</td>
+                <td><textarea id="b_name"></textarea></td>
+                <td><textarea id="l_name"></textarea></td>
+                <td><textarea id="o_name"></textarea></td>
+                <td><textarea id="d_name"></textarea></td>
+            </tr>
+            <tr>
+                <td class="row-title">উপাদান</td>
+                <td><textarea id="b_ing"></textarea></td>
+                <td><textarea id="l_ing"></textarea></td>
+                <td><textarea id="o_ing"></textarea></td>
+                <td><textarea id="d_ing"></textarea></td>
+            </tr>
+        </table>
+        <button class="btn btn-save" onclick="saveTable()">সেইভ করুন</button>
+        <button class="btn" onclick="showMainPage()" style="background:#666; color:white; width: 100%; padding: 10px; font-size: 14px;">বাতিল</button>
+    </div>
+</div>
+<script>
+    let editIndex = -1;
+
+    // অফলাইনে কাজ করার জন্য ম্যাজিক কোড (Service Worker Registration)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').then(() => {
+            console.log('Offline Support Ready');
+        }).catch(err => console.log('Service Worker Error', err));
+    }
+
+    window.onload = function() {
+        if (localStorage.getItem('loggedMeherin') === 'true') {
+            showMainPage();
+        }
+    };
+    function checkLogin() {
+        const pass = document.getElementById('passInput').value;
+        if (pass === "মেহেরিন") {
+            localStorage.setItem('loggedMeherin', 'true');
+            showMainPage();
+        } else {
+            alert("ভুল পাসওয়ার্ড!");
+        }
+    }
+    function showMainPage() {
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('create-screen').style.display = 'none';
+        document.getElementById('main-screen').style.display = 'block';
+        renderTables();
+    }
+    function showCreatePage() {
+        editIndex = -1;
+        document.getElementById('form-title').innerText = "নতুন তালিকা তৈরি";
+        clearForm();
+        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('create-screen').style.display = 'block';
+    }
+    function saveTable() {
+        const dateVal = document.getElementById('targetDate').value;
+        if (!dateVal) {
+            alert("দয়া করে তারিখ নির্বাচন করুন!");
+            return;
+        }
+        let list = JSON.parse(localStorage.getItem('dietData') || "[]");
+        const isDuplicate = list.some((item, index) => item.date === dateVal && index !== editIndex);
+        if (isDuplicate) {
+            alert("এই তারিখের তালিকা ইতিমধ্যে তৈরি করা আছে! অন্য তারিখ নির্বাচন করুন বা আগেরটি ইডিট করুন।");
+            return;
+        }
+        const dayNames = ["রবিবার", "সোমবার", "মঙ্গলবার", "বুধবার", "বৃহস্পতিবার", "শুক্রবার", "শনিবার"];
+        const d = new Date(dateVal);
+        const dayName = dayNames[d.getDay()];
+        const entry = {
+            date: dateVal,
+            day: dayName,
+            b_name: document.getElementById('b_name').value,
+            b_ing: document.getElementById('b_ing').value,
+            l_name: document.getElementById('l_name').value,
+            l_ing: document.getElementById('l_ing').value,
+            o_name: document.getElementById('o_name').value,
+            o_ing: document.getElementById('o_ing').value,
+            d_name: document.getElementById('d_name').value,
+            d_ing: document.getElementById('d_ing').value
+        };
+        if (editIndex > -1) { 
+            list[editIndex] = entry; 
+        } else { 
+            list.push(entry); 
+        }
+        localStorage.setItem('dietData', JSON.stringify(list));
+        showMainPage();
+    }
+    function renderTables() {
+        const container = document.getElementById('table-container');
+        container.innerHTML = "";
+        let list = JSON.parse(localStorage.getItem('dietData') || "[]");
+        
+        const today = new Date().toISOString().split('T')[0];
+        list = list.filter(item => item.date >= today);
+        list.sort((a, b) => new Date(a.date) - new Date(b.date));
+        localStorage.setItem('dietData', JSON.stringify(list));
+        list.forEach((item, index) => {
+            const html = `
+                <table class="diet-table">
+                    <tr><td colspan="5" class="date-header">${item.date} | ${item.day}</td></tr>
+                    <tr class="col-title">
+                        <td style="width: 45px;">সময়</td>
+                        <td>সকাল</td>
+                        <td>দুপুর</td>
+                        <td>অন্যান্য</td>
+                        <td>রাত</td>
+                    </tr>
+                    <tr>
+                        <td class="row-title">খাবার</td>
+                        <td>${item.b_name}</td>
+                        <td>${item.l_name}</td>
+                        <td>${item.o_name}</td>
+                        <td>${item.d_name}</td>
+                    </tr>
+                    <tr>
+                        <td class="row-title">উপাদান</td>
+                        <td>${item.b_ing}</td>
+                        <td>${item.l_ing}</td>
+                        <td>${item.o_ing}</td>
+                        <td>${item.d_ing}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="5" style="background:#f9f9f9; text-align: right; border-top: 1px solid #eee;">
+                            <button class="btn-edit-item" onclick="editTable(${index})">ইডিট</button>
+                            <button class="btn-del-item" onclick="deleteTable(${index})">ডিলিট</button>
+                        </td>
+                    </tr>
+                </table>
+            `;
+            container.innerHTML += html;
+        });
+    }
+    function deleteTable(index) {
+        if(confirm("মুছে ফেলতে চান?")) {
+            let list = JSON.parse(localStorage.getItem('dietData'));
+            list.splice(index, 1);
+            localStorage.setItem('dietData', JSON.stringify(list));
+            renderTables();
+        }
+    }
+    function editTable(index) {
+        let list = JSON.parse(localStorage.getItem('dietData'));
+        const item = list[index];
+        editIndex = index;
+        document.getElementById('targetDate').value = item.date;
+        document.getElementById('b_name').value = item.b_name;
+        document.getElementById('b_ing').value = item.b_ing;
+        document.getElementById('l_name').value = item.l_name;
+        document.getElementById('l_ing').value = item.l_ing;
+        document.getElementById('o_name').value = item.o_name;
+        document.getElementById('o_ing').value = item.o_ing;
+        document.getElementById('d_name').value = item.d_name;
+        document.getElementById('d_ing').value = item.d_ing;
+        document.getElementById('form-title').innerText = "তালিকা এডিট করুন";
+        document.getElementById('main-screen').style.display = 'none';
+        document.getElementById('create-screen').style.display = 'block';
+    }
+    function clearForm() {
+        document.querySelectorAll('textarea').forEach(t => t.value = "");
+        document.getElementById('targetDate').value = "";
+    }
+</script>
+</body>
+</html>
