@@ -1,4 +1,4 @@
-const CACHE_NAME = 'meherin-diet-offline-v1';
+const CACHE_NAME = 'meherin-diet-offline-v3';
 const assets = [
   './',
   './index.html',
