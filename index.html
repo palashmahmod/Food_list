@@ -76,24 +76,27 @@
         <input type="date" id="targetDate">
         <table class="diet-table">
             <tr class="col-title">
-                <td style="width: 45px;">সময়</td>
+                <td style="width: 45px;">সময় →</td>
                 <td>সকাল</td>
-                <td>অন্যান্য</td>
+                <td>অন্যান্য-১</td>
                 <td>দুপুর</td>
+                <td>অন্যান্য-২</td>
                 <td>রাত</td>
             </tr>
             <tr>
-                <td class="row-title">খাবার</td>
+                <td class="row-title">খাবারের<br>নাম</td>
                 <td><textarea id="b_name"></textarea></td>
-                <td><textarea id="o_name"></textarea></td>
-                <td><textarea id="l_name"></textarea></td>                
+                <td><textarea id="o1_name"></textarea></td>
+                <td><textarea id="l_name"></textarea></td>
+                 <td><textarea id="o2_name"></textarea></td>               
                 <td><textarea id="d_name"></textarea></td>
             </tr>
             <tr>
                 <td class="row-title">উপাদান</td>
                 <td><textarea id="b_ing"></textarea></td>
-                <td><textarea id="o_ing"></textarea></td>
-                <td><textarea id="l_ing"></textarea></td>                
+                <td><textarea id="o1_ing"></textarea></td>
+                <td><textarea id="l_ing"></textarea></td>
+                <td><textarea id="o2_ing"></textarea></td>                
                 <td><textarea id="d_ing"></textarea></td>
             </tr>
         </table>
@@ -160,8 +163,10 @@
             b_ing: document.getElementById('b_ing').value,
             l_name: document.getElementById('l_name').value,
             l_ing: document.getElementById('l_ing').value,
-            o_name: document.getElementById('o_name').value,
-            o_ing: document.getElementById('o_ing').value,
+            o1_name: document.getElementById('o1_name').value,
+            o1_ing: document.getElementById('o1_ing').value,
+            o2_name: document.getElementById('o2_name').value,
+            o2_ing: document.getElementById('o2_ing').value,
             d_name: document.getElementById('d_name').value,
             d_ing: document.getElementById('d_ing').value
         };
@@ -185,30 +190,33 @@
         list.forEach((item, index) => {
             const html = `
                 <table class="diet-table">
-                    <tr><td colspan="5" class="date-header">${item.date} | ${item.day}</td></tr>
+                    <tr><td colspan="6" class="date-header">${item.date} | ${item.day}</td></tr>
                     <tr class="col-title">
-                        <td style="width: 45px;">সময়</td>
-                        <td>সকাল</td>
-                        <td>অন্যান্য</td>
-                        <td>দুপুর</td>
-                        <td>রাত</td>
-                    </tr>
-                    <tr>
-                        <td class="row-title">খাবারের নাম</td>
+                        <td style="width: 45px;">সময় →</td>
+                      <td>সকাল</td>
+                      <td>অন্যান্য-১</td>
+                      <td>দুপুর</td>
+                      <td>অন্যান্য-২</td>
+                      <td>রাত</td>
+                   </tr>
+                   <tr>
+                        <td class="row-title">খাবারের<br>নাম</td>
                         <td>${item.b_name}</td>
-                        <td>${item.o_name}</td>
-                        <td>${item.l_name}</td>                        
+                        <td>${item.o1_name}</td>
+                        <td>${item.l_name}</td>
+                        <td>${item.o2_name}</td>                        
                         <td>${item.d_name}</td>
                     </tr>
                     <tr>
                         <td class="row-title">উপাদান</td>
                         <td>${item.b_ing}</td>
-                        <td>${item.o_ing}</td>
-                        <td>${item.l_ing}</td>                        
+                        <td>${item.o1_ing}</td>
+                        <td>${item.l_ing}</td>
+                        <td>${item.o2_ing}</td>                        
                         <td>${item.d_ing}</td>
                     </tr>
                     <tr>
-                        <td colspan="5" style="background:#f9f9f9; text-align: right; border-top: 1px solid #eee;">
+                        <td colspan="6" style="background:#f9f9f9; text-align: right; border-top: 1px solid #eee;">
                             <button class="btn-edit-item" onclick="editTable(${index})">ইডিট</button>
                             <button class="btn-del-item" onclick="deleteTable(${index})">ডিলিট</button>
                         </td>
@@ -235,8 +243,10 @@
         document.getElementById('b_ing').value = item.b_ing;
         document.getElementById('l_name').value = item.l_name;
         document.getElementById('l_ing').value = item.l_ing;
-        document.getElementById('o_name').value = item.o_name;
-        document.getElementById('o_ing').value = item.o_ing;
+        document.getElementById('o1_name').value = item.o1_name;
+        document.getElementById('o1_ing').value = item.o1_ing;
+document.getElementById('o2_name').value = item.o2_name;
+        document.getElementById('o2_ing').value = item.o2_ing;        
         document.getElementById('d_name').value = item.d_name;
         document.getElementById('d_ing').value = item.d_ing;
         document.getElementById('form-title').innerText = "তালিকা এডিট করুন";
