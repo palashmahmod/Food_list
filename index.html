@@ -55,6 +55,7 @@
     </style>
 </head>
 <body>
+
 <div class="container">
     <div id="login-screen">
         <img src="photo1.jpg" alt="Photo" class="top-photo">
@@ -64,12 +65,14 @@
             <button class="btn btn-main" onclick="checkLogin()">প্রবেশ করুন</button>
         </div>
     </div>
+
     <div id="main-screen">
         <img src="photo2.jpg" alt="Photo" class="top-photo">
         <header><h3>মেহেরিনের খাবার তালিকা</h3></header>
         <div id="table-container"></div>
         <button class="btn btn-main" onclick="showCreatePage()">নতুন তালিকা তৈরি করুন +</button>
     </div>
+
     <div id="create-screen">
         <header><h3 id="form-title">নতুন তালিকা তৈরি</h3></header>
         <label>তারিখ ও বার নির্বাচন করুন:</label>
@@ -88,7 +91,7 @@
                 <td><textarea id="b_name"></textarea></td>
                 <td><textarea id="o1_name"></textarea></td>
                 <td><textarea id="l_name"></textarea></td>
-                 <td><textarea id="o2_name"></textarea></td>               
+                <td><textarea id="o2_name"></textarea></td>                       
                 <td><textarea id="d_name"></textarea></td>
             </tr>
             <tr>
@@ -96,7 +99,7 @@
                 <td><textarea id="b_ing"></textarea></td>
                 <td><textarea id="o1_ing"></textarea></td>
                 <td><textarea id="l_ing"></textarea></td>
-                <td><textarea id="o2_ing"></textarea></td>                
+                <td><textarea id="o2_ing"></textarea></td>                       
                 <td><textarea id="d_ing"></textarea></td>
             </tr>
         </table>
@@ -104,6 +107,7 @@
         <button class="btn" onclick="showMainPage()" style="background:#666; color:white; width: 100%; padding: 10px; font-size: 14px;">বাতিল</button>
     </div>
 </div>
+
 <script>
     let editIndex = -1;
 
@@ -119,6 +123,7 @@
             showMainPage();
         }
     };
+
     function checkLogin() {
         const pass = document.getElementById('passInput').value;
         if (pass === "মেহেরিন") {
@@ -128,12 +133,14 @@
             alert("ভুল পাসওয়ার্ড!");
         }
     }
+
     function showMainPage() {
         document.getElementById('login-screen').style.display = 'none';
         document.getElementById('create-screen').style.display = 'none';
         document.getElementById('main-screen').style.display = 'block';
         renderTables();
     }
+
     function showCreatePage() {
         editIndex = -1;
         document.getElementById('form-title').innerText = "নতুন তালিকা তৈরি";
@@ -141,6 +148,7 @@
         document.getElementById('main-screen').style.display = 'none';
         document.getElementById('create-screen').style.display = 'block';
     }
+
     function saveTable() {
         const dateVal = document.getElementById('targetDate').value;
         if (!dateVal) {
@@ -178,26 +186,66 @@
         localStorage.setItem('dietData', JSON.stringify(list));
         showMainPage();
     }
+
     function renderTables() {
         const container = document.getElementById('table-container');
         container.innerHTML = "";
         let list = JSON.parse(localStorage.getItem('dietData') || "[]");
         
-        const today = new Date().toISOString().split('T')[0];
-        list = list.filter(item => item.date >= today);
+        // ১. নিখুঁতভাবে আজকের তারিখ বের করা
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const today = `${year}-${month}-${day}`;
+        
+        // ২. নিখুঁতভাবে আগামীকালের (পরের দিন) তারিখ বের করার কোড
+        const tomorrowObj = new Date(now);
+        tomorrowObj.setDate(now.getDate() + 1); // আজকের সাথে ১ দিন যোগ করা হলো
+        const tomorrowYear = tomorrowObj.getFullYear();
+        const tomorrowMonth = String(tomorrowObj.getMonth() + 1).padStart(2, '0');
+        const tomorrowDay = String(tomorrowObj.getDate()).padStart(2, '0');
+        const tomorrow = `${tomorrowYear}-${tomorrowMonth}-${tomorrowDay}`;
+        
+        // ৩. সব ডাটাকে প্রথমে সাধারণ তারিখ অনুযায়ী সিরিয়াল (ছোট থেকে বড়) করা হলো
         list.sort((a, b) => new Date(a.date) - new Date(b.date));
+        
+        // ৪. আজ এবং আগামীকালের টেবিল দুটিকে খুঁজে বের করে আলাদা করা
+        const todayIndex = list.findIndex(item => item.date === today);
+        let todayItem = todayIndex > -1 ? list.splice(todayIndex, 1)[0] : null;
+        
+        const tomorrowIndex = list.findIndex(item => item.date === tomorrow);
+        let tomorrowItem = tomorrowIndex > -1 ? list.splice(tomorrowIndex, 1)[0] : null;
+        
+        // ৫. এবার সিরিয়াল অনুযায়ী প্রথমে পরের দিন, তারপর আজকের দিনটিকে সবার উপরে পুশ করা হলো
+        if (tomorrowItem) list.unshift(tomorrowItem); // এটি থাকবে দ্বিতীয় পজিশনে
+        if (todayItem) list.unshift(todayItem);       // এটি থাকবে প্রথম পজিশনে (সবার উপরে)
+        
+        // ৬. নতুন সিরিয়ালটি লোকাল স্টোরেজে আপডেট করা হলো
         localStorage.setItem('dietData', JSON.stringify(list));
+
         list.forEach((item, index) => {
+            const dateParts = item.date.split('-'); 
+            const formattedDate = `${dateParts[2]}-${dateParts[1]}-${dateParts[0]}`; 
+
+            // --- আজ এবং পরের দিনের জন্য আলাদা আলাদা রঙিন ট্যাগ সেট করার লজিক ---
+            let statusTag = '';
+            if (item.date === today) {
+                statusTag = ' <span style="color:var(--success); font-weight:bold;">(আজ)</span>';
+            } else if (item.date === tomorrow) {
+                statusTag = ' <span style="color:orange; font-weight:bold;">(পরের দিন)</span>';
+            }
+
             const html = `
                 <table class="diet-table">
-                    <tr><td colspan="6" class="date-header">${item.date} | ${item.day}</td></tr>
+                    <tr><td colspan="6" class="date-header">${formattedDate} | ${item.day}${statusTag}</td></tr>
                     <tr class="col-title">
                         <td style="width: 45px;">সময় →</td>
-                      <td>সকাল</td>
-                      <td>অন্যান্য-১</td>
-                      <td>দুপুর</td>
-                      <td>অন্যান্য-২</td>
-                      <td>রাত</td>
+                        <td>সকাল</td>
+                        <td>অন্যান্য-১</td>
+                        <td>দুপুর</td>
+                        <td>অন্যান্য-২</td>
+                        <td>রাত</td>
                    </tr>
                    <tr>
                         <td class="row-title">খাবারের<br>নাম</td>
@@ -226,6 +274,7 @@
             container.innerHTML += html;
         });
     }
+
     function deleteTable(index) {
         if(confirm("মুছে ফেলতে চান?")) {
             let list = JSON.parse(localStorage.getItem('dietData'));
@@ -234,6 +283,7 @@
             renderTables();
         }
     }
+
     function editTable(index) {
         let list = JSON.parse(localStorage.getItem('dietData'));
         const item = list[index];
@@ -245,7 +295,7 @@
         document.getElementById('l_ing').value = item.l_ing;
         document.getElementById('o1_name').value = item.o1_name;
         document.getElementById('o1_ing').value = item.o1_ing;
-document.getElementById('o2_name').value = item.o2_name;
+        document.getElementById('o2_name').value = item.o2_name;
         document.getElementById('o2_ing').value = item.o2_ing;        
         document.getElementById('d_name').value = item.d_name;
         document.getElementById('d_ing').value = item.d_ing;
@@ -253,6 +303,7 @@ document.getElementById('o2_name').value = item.o2_name;
         document.getElementById('main-screen').style.display = 'none';
         document.getElementById('create-screen').style.display = 'block';
     }
+
     function clearForm() {
         document.querySelectorAll('textarea').forEach(t => t.value = "");
         document.getElementById('targetDate').value = "";
